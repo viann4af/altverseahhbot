@@ -183,7 +183,7 @@ client.on("ready", () => {
   scheduleAlerts("Obito", 10, 25, true);
   scheduleAlerts("Obito", 22, 25, true);
   scheduleAlerts("Zetsu", 10, 30, true);
-  scheduleAlerts("Zetsu", 22, 30, true);
+  scheduleAlerts("Zetsu", 20, 30, true);
   scheduleAlerts("Konan", 5, 0, true);
   scheduleAlerts("Konan", 17, 0, true);
   scheduleAlerts("Juugo", 4, 30, true);
