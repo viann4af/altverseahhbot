@@ -160,12 +160,43 @@ client.on("ready", () => {
   // Agendar Bijuus
   scheduleAlerts("Shukaku", 7, 30);
   scheduleAlerts("Shukaku", 19, 30);
-  // ... (adicione todos os outros horários de bijuus aqui)
+  scheduleAlerts("Matatabi", 15, 30);
+  scheduleAlerts("Matatabi", 3, 30);
+  scheduleAlerts("Isobu", 14, 30);
+  scheduleAlerts("Isobu", 2, 30);
+  scheduleAlerts("Son Goku", 10, 0);
+  scheduleAlerts("Son Goku", 22, 0);
+  scheduleAlerts("Kokuo", 11, 0);
+  scheduleAlerts("Kokuo", 23, 0);
+  scheduleAlerts("Saiken", 12, 0);
+  scheduleAlerts("Saiken", 0, 0);
+  scheduleAlerts("Chomei", 13, 30);
+  scheduleAlerts("Chomei", 23, 30);
+  scheduleAlerts("Gyuki", 12, 30);
+  scheduleAlerts("Gyuki", 0, 30);
+  scheduleAlerts("Kurama", 17, 30);
+  scheduleAlerts("Kurama", 5, 30);
+
+  
 
   // Agendar Bosses
   scheduleAlerts("Obito", 10, 25, true);
   scheduleAlerts("Obito", 22, 25, true);
-  // ... (adicione todos os outros horários de bosses aqui)
+  scheduleAlerts("Zetsu", 10, 30, true);
+  scheduleAlerts("Zetsu", 22, 30, true);
+  scheduleAlerts("Konan", 5, 0, true);
+  scheduleAlerts("Konan", 17, 0, true);
+  scheduleAlerts("Juugo", 4, 30, true);
+  scheduleAlerts("Juugo", 16, 30, true);
+  scheduleAlerts("Deidara", 6, 0, true);
+  scheduleAlerts("Deidara", 18, 0, true);
+  scheduleAlerts("Kakuzo", 7, 0, true);
+  scheduleAlerts("Kakuzo", 19, 0, true);
+  scheduleAlerts("Kisame", 4, 0, true);
+  scheduleAlerts("Kisame", 16, 0, true);
+  scheduleAlerts("Madara", 9, 45, true);
+  scheduleAlerts("Madara", 21, 45, true);
+  
 
   console.log("⏰ Todos os agendamentos foram configurados!");
 });
@@ -189,5 +220,10 @@ app.listen(PORT, () => {
     }, 300000);
   }
 });
+
+// Ping automático (evita dormência)
+setInterval(() => {
+  fetch('altverseahhbot-production.up.railway.app').catch(console.error);
+}, 300000); // 5 minutos
 
 client.login(TOKEN).catch(console.error);
