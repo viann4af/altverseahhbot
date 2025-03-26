@@ -8,6 +8,7 @@ const fs = require("fs");
 const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = "1354149129122742347";
 const TEST_CHANNEL_ID = "1353464325586817176";
+const NEW_CHANNEL_ID = "1353129789497671732"; // Novo canal adicionado
 const KAGE_ROLE_ID = "1353463917673840741";
 const ADMIN_ROLE_ID = "1353134278564909076";
 
@@ -102,7 +103,7 @@ async function sendAlert(entityName, isNow, isBoss = false) {
 
   try {
     await channel.send({
-      content: roleId ? `<@&${KAGE_ROLE_ID}> <@&${roleId}>` : `<@&${KAGE_ROLE_ID}>`,
+      content: roleId ? `@everyone <@&${roleId}>` : `@everyone`,
       embeds: [
         new Discord.EmbedBuilder()
           .setTitle(`${assets.emoji} ${entityName} ${text}`)
@@ -123,7 +124,7 @@ async function sendAlert(entityName, isNow, isBoss = false) {
 }
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot || ![CHANNEL_ID, TEST_CHANNEL_ID].includes(message.channel.id)) return;
+  if (message.author.bot || ![CHANNEL_ID, TEST_CHANNEL_ID, NEW_CHANNEL_ID].includes(message.channel.id)) return;
 
   try {
     // Novo comando !clearchat
