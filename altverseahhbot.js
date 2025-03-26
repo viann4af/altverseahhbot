@@ -17,6 +17,8 @@ const client = new Discord.Client({
     Discord.GatewayIntentBits.GuildMessages,
     Discord.GatewayIntentBits.GuildMembers,
     Discord.GatewayIntentBits.MessageContent,
+    Discord.GatewayIntentBits.GuildMessageTyping,
+    Discord.GatewayIntentBits.GuildMessageReactions
   ],
 });
 
@@ -124,9 +126,30 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot || ![CHANNEL_ID, TEST_CHANNEL_ID].includes(message.channel.id)) return;
 
   try {
-    if (message.content.startsWith("!notificar")) {
-      if (!message.member) return;
+    // Novo comando !clearchat
+    if (message.content === "!clearchat") {
+      if (!message.member.roles.cache.has(ADMIN_ROLE_ID)) {
+        const reply = await message.reply("❌ Você precisa ser um administrador para usar este comando!");
+        return setTimeout(() => reply.delete(), 5000);
+      }
 
+      if (!message.channel.isTextBased()) return;
+
+      // Limpa até 100 mensagens (máximo por chamada)
+      await message.channel.bulkDelete(100, true)
+        .then(deletedMessages => {
+          message.channel.send(`✅ ${deletedMessages.size} mensagens foram limpas!`)
+            .then(msg => setTimeout(() => msg.delete(), 5000));
+        })
+        .catch(error => {
+          console.error("Erro ao limpar mensagens:", error);
+          message.reply("❌ Ocorreu um erro ao tentar limpar as mensagens!")
+            .then(msg => setTimeout(() => msg.delete(), 5000));
+        });
+      return;
+    }
+
+    if (message.content.startsWith("!notificar")) {
       const args = message.content.toLowerCase()
         .replace(/,/g, ' ')
         .split(' ')
@@ -175,8 +198,6 @@ client.on("messageCreate", async (message) => {
       setTimeout(() => response.delete(), 15000);
     }
     else if (message.content.startsWith("!silenciar")) {
-      if (!message.member) return;
-
       const args = message.content.toLowerCase()
         .replace(/,/g, ' ')
         .split(' ')
