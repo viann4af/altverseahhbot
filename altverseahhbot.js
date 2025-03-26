@@ -19,7 +19,7 @@ const client = new Discord.Client({
 });
 
 const ENTITY_ASSETS = {
-  shukaku: { emoji: "🐾", gif: "https://media.tenor.com/7ScZ5mtl4MsAAAAd/shukaku-naruto.gif" },
+  shukaku: { emoji: "🐾", gif: "https://media.tenor.com/naruto-lets-go-wild-shukaku-get-ready-get-ready-shukaku-gif-11956721.gif" },
   matatabi: { emoji: "🔥", gif: "https://media.tenor.com/3Q7hJQZ7JqIAAAAd/matatabi-naruto.gif" },
   isobu: { emoji: "🌊", gif: "https://media.tenor.com/3Q7jJQZ7JqIAAAAd/isobu-naruto.gif" },
   songoku: { emoji: "🐵", gif: "https://media.tenor.com/3Q7kJQZ7JqIAAAAd/son-goku-naruto.gif" },
@@ -94,15 +94,14 @@ async function sendAlert(entityName, isNow, isBoss = false) {
 
   const embed = new Discord.EmbedBuilder()
     .setTitle(`${assets.emoji} ${entityName} ${text}`)
-    .setImage(assets.gif)
     .setColor(isBoss ? "#FF0000" : "#00FF00");
 
-  const mentions = roleId ? `<@&${KAGE_ROLE_ID}> <@&${roleId}>` : `<@&${KAGE_ROLE_ID}>`;
-
-  await channel.send({ 
-    content: mentions,
-    embeds: [embed] 
+  await channel.send({
+    content: roleId ? `<@&${KAGE_ROLE_ID}> <@&${roleId}>` : `<@&${KAGE_ROLE_ID}>`,
+    embeds: [embed],
+    files: [assets.gif]
   });
+  
   console.log(`Alert sent: ${entityName} ${text}`);
 }
 
@@ -111,11 +110,7 @@ client.on("messageCreate", async (message) => {
 
   try {
     if (message.content.startsWith("!notificar")) {
-      const args = message.content.toLowerCase()
-        .replace(/,/g, ' ')
-        .split(' ')
-        .slice(1)
-        .filter(arg => arg.trim() !== '');
+      const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
         const reply = await message.reply("**Uso:** `!notificar bijuu1, boss1, bijuu2...`\n**Exemplo:** `!notificar kurama, madara`");
@@ -159,11 +154,7 @@ client.on("messageCreate", async (message) => {
       setTimeout(() => response.delete(), 15000);
     }
     else if (message.content.startsWith("!silenciar")) {
-      const args = message.content.toLowerCase()
-        .replace(/,/g, ' ')
-        .split(' ')
-        .slice(1)
-        .filter(arg => arg.trim() !== '');
+      const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
         const reply = await message.reply("**Uso:** `!silenciar bijuu1, boss1...`\n**Exemplo:** `!silenciar kurama, obito`");
