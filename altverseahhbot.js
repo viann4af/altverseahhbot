@@ -451,7 +451,7 @@ client.on("ready", () => {
   scheduleAlerts("Kokuo", 23, 0);
   scheduleAlerts("Saiken", 12, 0);
   scheduleAlerts("Saiken", 0, 0);
-  scheduleAlerts("Chomei", 13, 30);
+  scheduleAlerts("Chomei", 11, 30);
   scheduleAlerts("Chomei", 23, 30);
   scheduleAlerts("Gyuki", 12, 30);
   scheduleAlerts("Gyuki", 0, 30);
