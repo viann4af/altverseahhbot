@@ -19,23 +19,23 @@ const client = new Discord.Client({
 });
 
 const ENTITY_ASSETS = {
-  shukaku: { emoji: "🐾", gif: "https://tenor.com/pt-BR/view/naruto-lets-go-wild-shukaku-get-ready-get-ready-shukaku-gif-11956721" },
-  matatabi: { emoji: "🔥", gif: "https://tenor.com/pt-BR/view/matatabi-naruto-anime-bijuu-two-tails-gif-17610422" },
-  isobu: { emoji: "🌊", gif: "https://tenor.com/pt-BR/view/isobu-gif-24958375" },
-  songoku: { emoji: "🐵", gif: "https://tenor.com/pt-BR/view/bijuu-gif-25955278" },
-  kokuo: { emoji: "🐎", gif: "https://tenor.com/pt-BR/view/kokuo-bijuu-naruto-gif-16019463" },
-  saiken: { emoji: "🐙", gif: "https://tenor.com/pt-BR/view/saiken-rokubi-bijuu-naruto-six-tails-gif-15346212056033384153" },
-  chomei: { emoji: "🐛", gif: "https://tenor.com/pt-BR/view/bijuu-gif-25955282" },
-  gyuki: { emoji: "🐂", gif: "https://tenor.com/pt-BR/view/gyuki-bijuu-killer-bee-roar-jinchuuriki-vs-jinchuuriki-gif-19222709" },
-  kurama: { emoji: "🦊", gif: "https://tenor.com/pt-BR/view/kurama-naruto-smile-naruto-shippuden-anime-gif-17477767" },
-  obito: { emoji: "🌀", gif: "https://tenor.com/pt-BR/view/anime-gif-1090960240556527685" },
-  zetsu: { emoji: "🌿", gif: "https://tenor.com/pt-BR/view/zetsu-white-zetsu-white-black-black-zetsu-gif-16875069868152542261" },
-  konan: { emoji: "📜", gif: "https://tenor.com/pt-BR/view/tobi-vs-konan-origami-akatsuki-gif-25024777" },
-  juugo: { emoji: "💢", gif: "https://tenor.com/pt-BR/view/jugo-naruto-anime-gif-11290790" },
-  deidara: { emoji: "💣", gif: "https://tenor.com/pt-BR/view/deidara-gif-22580287" },
-  kakuzo: { emoji: "💀", gif: "https://tenor.com/pt-BR/view/naruto-anime-money-counting-gif-9629838" },
-  kisame: { emoji: "🦈", gif: "https://tenor.com/pt-BR/view/maykson-rootwolf-uri-gif-19641768" },
-  madara: { emoji: "👁️", gif: "https://tenor.com/pt-BR/view/ok-gif-26107516" },
+  shukaku: { emoji: "🐾", gif: "https://media.tenor.com/7ScZ5mtl4MsAAAAd/shukaku-naruto.gif" },
+  matatabi: { emoji: "🔥", gif: "https://media.tenor.com/3Q7hJQZ7JqIAAAAd/matatabi-naruto.gif" },
+  isobu: { emoji: "🌊", gif: "https://media.tenor.com/3Q7jJQZ7JqIAAAAd/isobu-naruto.gif" },
+  songoku: { emoji: "🐵", gif: "https://media.tenor.com/3Q7kJQZ7JqIAAAAd/son-goku-naruto.gif" },
+  kokuo: { emoji: "🐎", gif: "https://media.tenor.com/3Q7lJQZ7JqIAAAAd/kokuo-naruto.gif" },
+  saiken: { emoji: "🐙", gif: "https://media.tenor.com/3Q7mJQZ7JqIAAAAd/saiken-naruto.gif" },
+  chomei: { emoji: "🐛", gif: "https://media.tenor.com/3Q7nJQZ7JqIAAAAd/chomei-naruto.gif" },
+  gyuki: { emoji: "🐂", gif: "https://media.tenor.com/3Q7oJQZ7JqIAAAAd/gyuki-naruto.gif" },
+  kurama: { emoji: "🦊", gif: "https://media.tenor.com/3Q7pJQZ7JqIAAAAd/kurama-naruto.gif" },
+  obito: { emoji: "🌀", gif: "https://media.tenor.com/3Q7qJQZ7JqIAAAAd/obito-naruto.gif" },
+  zetsu: { emoji: "🌿", gif: "https://media.tenor.com/3Q7rJQZ7JqIAAAAd/zetsu-naruto.gif" },
+  konan: { emoji: "📜", gif: "https://media.tenor.com/3Q7sJQZ7JqIAAAAd/konan-naruto.gif" },
+  juugo: { emoji: "💢", gif: "https://media.tenor.com/3Q7tJQZ7JqIAAAAd/juugo-naruto.gif" },
+  deidara: { emoji: "💣", gif: "https://media.tenor.com/3Q7uJQZ7JqIAAAAd/deidara-naruto.gif" },
+  kakuzo: { emoji: "💀", gif: "https://media.tenor.com/3Q7vJQZ7JqIAAAAd/kakuzo-naruto.gif" },
+  kisame: { emoji: "🦈", gif: "https://media.tenor.com/3Q7wJQZ7JqIAAAAd/kisame-naruto.gif" },
+  madara: { emoji: "👁️", gif: "https://media.tenor.com/3Q7xJQZ7JqIAAAAd/madara-naruto.gif" }
 };
 
 const BIJUUS = {
