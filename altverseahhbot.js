@@ -1,8 +1,10 @@
 const Discord = require("discord.js");
 const cron = require("node-cron");
 const express = require("express");
-const fetch = require("node-fetch");
+const path = require("path");
+const fs = require("fs");
 
+// Configurações
 const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = "1354149129122742347";
 const TEST_CHANNEL_ID = "1353464325586817176";
@@ -18,24 +20,28 @@ const client = new Discord.Client({
   ],
 });
 
+// Configuração dos GIFs locais
 const ENTITY_ASSETS = {
-  shukaku: { emoji: "🐾", gif: "https://media.tenor.com/naruto-lets-go-wild-shukaku-get-ready-get-ready-shukaku-gif-11956721.gif" },
-  matatabi: { emoji: "🔥", gif: "https://media.tenor.com/3Q7hJQZ7JqIAAAAd/matatabi-naruto.gif" },
-  isobu: { emoji: "🌊", gif: "https://media.tenor.com/3Q7jJQZ7JqIAAAAd/isobu-naruto.gif" },
-  songoku: { emoji: "🐵", gif: "https://media.tenor.com/3Q7kJQZ7JqIAAAAd/son-goku-naruto.gif" },
-  kokuo: { emoji: "🐎", gif: "https://media.tenor.com/3Q7lJQZ7JqIAAAAd/kokuo-naruto.gif" },
-  saiken: { emoji: "🐙", gif: "https://media.tenor.com/3Q7mJQZ7JqIAAAAd/saiken-naruto.gif" },
-  chomei: { emoji: "🐛", gif: "https://media.tenor.com/3Q7nJQZ7JqIAAAAd/chomei-naruto.gif" },
-  gyuki: { emoji: "🐂", gif: "https://media.tenor.com/3Q7oJQZ7JqIAAAAd/gyuki-naruto.gif" },
-  kurama: { emoji: "🦊", gif: "https://media.tenor.com/3Q7pJQZ7JqIAAAAd/kurama-naruto.gif" },
-  obito: { emoji: "🌀", gif: "https://media.tenor.com/3Q7qJQZ7JqIAAAAd/obito-naruto.gif" },
-  zetsu: { emoji: "🌿", gif: "https://media.tenor.com/3Q7rJQZ7JqIAAAAd/zetsu-naruto.gif" },
-  konan: { emoji: "📜", gif: "https://media.tenor.com/3Q7sJQZ7JqIAAAAd/konan-naruto.gif" },
-  juugo: { emoji: "💢", gif: "https://media.tenor.com/3Q7tJQZ7JqIAAAAd/juugo-naruto.gif" },
-  deidara: { emoji: "💣", gif: "https://media.tenor.com/3Q7uJQZ7JqIAAAAd/deidara-naruto.gif" },
-  kakuzo: { emoji: "💀", gif: "https://media.tenor.com/3Q7vJQZ7JqIAAAAd/kakuzo-naruto.gif" },
-  kisame: { emoji: "🦈", gif: "https://media.tenor.com/3Q7wJQZ7JqIAAAAd/kisame-naruto.gif" },
-  madara: { emoji: "👁️", gif: "https://media.tenor.com/3Q7xJQZ7JqIAAAAd/madara-naruto.gif" }
+  // Bijuus
+  shukaku: { emoji: "🐾", gif: "shukaku.gif" },
+  matatabi: { emoji: "🔥", gif: "matatabi.gif" },
+  isobu: { emoji: "🌊", gif: "isobu.gif" },
+  songoku: { emoji: "🐵", gif: "songoku.gif" },
+  kokuo: { emoji: "🐎", gif: "kokuo.gif" },
+  saiken: { emoji: "🐙", gif: "saiken.gif" },
+  chomei: { emoji: "🐛", gif: "chomei.gif" },
+  gyuki: { emoji: "🐂", gif: "gyuki.gif" },
+  kurama: { emoji: "🦊", gif: "kurama.gif" },
+
+  // Bosses
+  obito: { emoji: "🌀", gif: "obito.gif" },
+  zetsu: { emoji: "🌿", gif: "zetsu.gif" },
+  konan: { emoji: "📜", gif: "konan.gif" },
+  juugo: { emoji: "💢", gif: "juugo.gif" },
+  deidara: { emoji: "💣", gif: "deidara.gif" },
+  kakuzo: { emoji: "💀", gif: "kakuzo.gif" },
+  kisame: { emoji: "🦈", gif: "kisame.gif" },
+  madara: { emoji: "👁️", gif: "madara.gif" }
 };
 
 const BIJUUS = {
@@ -83,7 +89,7 @@ const ENTITY_ROLES = {
 
 async function sendAlert(entityName, isNow, isBoss = false) {
   const channel = client.channels.cache.get(CHANNEL_ID);
-  if (!channel) return console.error("Channel not found");
+  if (!channel) return console.error("❌ Canal não encontrado");
 
   const assets = ENTITY_ASSETS[entityName.toLowerCase()];
   const roleId = channel.guild.roles.cache.find(r => r.name === ENTITY_ROLES[entityName.toLowerCase()])?.id;
@@ -92,17 +98,26 @@ async function sendAlert(entityName, isNow, isBoss = false) {
     ? `${isBoss ? "APARECEU" : "SPAWNOU"} AGORA!` 
     : `irá ${isBoss ? "aparecer" : "spawnar"} em 10 minutos!`;
 
-  const embed = new Discord.EmbedBuilder()
-    .setTitle(`${assets.emoji} ${entityName} ${text}`)
-    .setColor(isBoss ? "#FF0000" : "#00FF00");
-
-  await channel.send({
-    content: roleId ? `<@&${KAGE_ROLE_ID}> <@&${roleId}>` : `<@&${KAGE_ROLE_ID}>`,
-    embeds: [embed],
-    files: [assets.gif]
-  });
-  
-  console.log(`Alert sent: ${entityName} ${text}`);
+  try {
+    await channel.send({
+      content: roleId ? `<@&${KAGE_ROLE_ID}> <@&${roleId}>` : `<@&${KAGE_ROLE_ID}>`,
+      embeds: [
+        new Discord.EmbedBuilder()
+          .setTitle(`${assets.emoji} ${entityName} ${text}`)
+          .setColor(isBoss ? "#FF0000" : "#00FF00")
+      ],
+      files: [
+        new Discord.AttachmentBuilder(
+          path.join(__dirname, 'gifs', assets.gif),
+          { name: assets.gif }
+        )
+      ]
+    });
+    console.log(`✅ Alerta enviado: ${entityName} ${text}`);
+  } catch (error) {
+    console.error(`❌ Falha ao enviar alerta para ${entityName}:`, error);
+    console.log(`ℹ️ Verifique se o arquivo 'gifs/${assets.gif}' existe`);
+  }
 }
 
 client.on("messageCreate", async (message) => {
@@ -110,10 +125,16 @@ client.on("messageCreate", async (message) => {
 
   try {
     if (message.content.startsWith("!notificar")) {
-      const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
+      if (!message.member) return;
+
+      const args = message.content.toLowerCase()
+        .replace(/,/g, ' ')
+        .split(' ')
+        .slice(1)
+        .filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
-        const reply = await message.reply("**Uso:** `!notificar bijuu1, boss1, bijuu2...`\n**Exemplo:** `!notificar kurama, madara`");
+        const reply = await message.reply("**Uso:** `!notificar bijuu1, boss1, ...`\n**Exemplo:** `!notificar kurama, madara`");
         return setTimeout(() => reply.delete(), 10000);
       }
 
@@ -141,23 +162,29 @@ client.on("messageCreate", async (message) => {
           await message.member.roles.add(role);
           success.push(roleName);
         } catch (err) {
-          console.error(`Erro ao processar ${roleName}:`, err);
+          console.error(`❌ Erro ao adicionar cargo ${roleName}:`, err);
           failed.push(roleName);
         }
       }
 
       let reply = "";
       if (success.length > 0) reply += `✅ **Cargos adicionados:** ${success.map(s => `@${s}`).join(', ')}\n`;
-      if (failed.length > 0) reply += `❌ **Erro em:** ${failed.join(', ')}`;
+      if (failed.length > 0) reply += `❌ **Falha em:** ${failed.join(', ')}`;
 
       const response = await message.reply(reply);
       setTimeout(() => response.delete(), 15000);
     }
     else if (message.content.startsWith("!silenciar")) {
-      const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
+      if (!message.member) return;
+
+      const args = message.content.toLowerCase()
+        .replace(/,/g, ' ')
+        .split(' ')
+        .slice(1)
+        .filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
-        const reply = await message.reply("**Uso:** `!silenciar bijuu1, boss1...`\n**Exemplo:** `!silenciar kurama, obito`");
+        const reply = await message.reply("**Uso:** `!silenciar bijuu1, boss1, ...`\n**Exemplo:** `!silenciar kurama, obito`");
         return setTimeout(() => reply.delete(), 10000);
       }
 
@@ -181,14 +208,14 @@ client.on("messageCreate", async (message) => {
           await message.member.roles.remove(role);
           success.push(roleName);
         } catch (err) {
-          console.error(`Erro ao remover ${roleName}:`, err);
+          console.error(`❌ Erro ao remover cargo ${roleName}:`, err);
           failed.push(roleName);
         }
       }
 
       let reply = "";
       if (success.length > 0) reply += `✅ **Cargos removidos:** ${success.map(s => `@${s}`).join(', ')}\n`;
-      if (failed.length > 0) reply += `❌ **Erro em:** ${failed.join(', ')}`;
+      if (failed.length > 0) reply += `❌ **Falha em:** ${failed.join(', ')}`;
 
       const response = await message.reply(reply);
       setTimeout(() => response.delete(), 15000);
@@ -234,7 +261,7 @@ client.on("messageCreate", async (message) => {
       sendAlert(BOSSES[bossKey], args[2] === "agora", true);
     }
   } catch (error) {
-    console.error("Erro no comando:", error);
+    console.error("❌ Erro no comando:", error);
   }
 });
 
@@ -260,8 +287,20 @@ function scheduleAlerts(name, hour, minute, isBoss = false) {
 }
 
 client.on("ready", () => {
-  console.log(`✅ Bot online como ${client.user.tag}`);
+  console.log(`\n✅ Bot online como ${client.user.tag}\n`);
 
+  // Verificação da pasta gifs
+  const gifsPath = path.join(__dirname, 'gifs');
+  fs.readdir(gifsPath, (err, files) => {
+    if (err) {
+      console.error('❌ Erro ao ler pasta gifs:', err);
+      console.log('ℹ️ Certifique-se de que a pasta "gifs" existe e contém os arquivos');
+      return;
+    }
+    console.log('📁 GIFs carregados:', files.join(', '));
+  });
+
+  // Agendamentos
   scheduleAlerts("Shukaku", 7, 30);
   scheduleAlerts("Shukaku", 19, 30);
   scheduleAlerts("Matatabi", 15, 30);
@@ -296,10 +335,17 @@ client.on("ready", () => {
   scheduleAlerts("Kisame", 16, 0, true);
   scheduleAlerts("Madara", 9, 45, true);
   scheduleAlerts("Madara", 21, 45, true);
+
+  console.log("\n⏰ Todos os agendamentos foram configurados!");
 });
 
 const app = express();
 app.get("/", (req, res) => res.send("Bot Online!"));
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`\n🌐 Servidor web rodando na porta ${process.env.PORT || 3000}`);
+});
 
-client.login(TOKEN);
+client.login(TOKEN).catch(err => {
+  console.error("❌ Falha ao conectar:", err);
+  process.exit(1);
+});
