@@ -22,10 +22,10 @@ const client = new Discord.Client({
     Discord.GatewayIntentBits.MessageContent,
     Discord.GatewayIntentBits.GuildMessageTyping,
     Discord.GatewayIntentBits.GuildMessageReactions
-  ],
+  ]
 });
 
-// Configuração dos GIFs locais
+// Configuração dos GIFs e entidades
 const ENTITY_ASSETS = {
   // Bijuus
   shukaku: { emoji: "🐾", gif: "shukaku.gif" },
@@ -133,6 +133,49 @@ async function sendAlert(entityName, isNow, isBoss = false) {
   }
 }
 
+function scheduleAlerts(name, hour, minute, isBoss = false) {
+  // Alerta de 10 minutos antes
+  let alertHour = hour;
+  let alertMinute = minute - 10;
+  
+  // Ajuste para minutos negativos
+  if (alertMinute < 0) {
+    alertMinute += 60;
+    alertHour -= 1;
+  }
+  
+  // Ajuste para horas negativas (cruzar a meia-noite)
+  if (alertHour < 0) {
+    alertHour += 24;
+  }
+
+  // Verificação de segurança para valores válidos
+  if (alertHour < 0 || alertHour > 23 || alertMinute < 0 || alertMinute > 59) {
+    console.error(`❌ Horário inválido para ${name}: ${alertHour}:${alertMinute}`);
+    return;
+  }
+
+  // Agendamento do alerta de 10 minutos (sem GIF)
+  cron.schedule(`${alertMinute} ${alertHour} * * *`, () => {
+    sendAlert(name, false, isBoss);
+  }, {
+    timezone: "America/Sao_Paulo",
+    scheduled: true,
+    recoverMissedExecutions: false
+  });
+
+  // Agendamento do spawn (com GIF)
+  cron.schedule(`${minute} ${hour} * * *`, () => {
+    sendAlert(name, true, isBoss);
+  }, {
+    timezone: "America/Sao_Paulo",
+    scheduled: true,
+    recoverMissedExecutions: false
+  });
+
+  console.log(`⏰ ${name} agendado para ${hour}:${minute} (alerta às ${alertHour}:${alertMinute})`);
+}
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot || ![CHANNEL_ID, TEST_CHANNEL_ID, NEW_CHANNEL_ID].includes(message.channel.id)) return;
 
@@ -147,7 +190,7 @@ client.on("messageCreate", async (message) => {
             name: "🔔 Notificações",
             value: "`!notificar bijuu,boss` - Ativa alertas\n" +
                    "`!silenciar bijuu,boss` - Desativa alertas\n" +
-                   "`!meuscargos` - Mostra notificações ativas\n" +
+                   "`!meuscargos` - Mostra suas notificações\n" +
                    "`!dormir [horas]` - Pausa notificações"
           },
           {
@@ -159,7 +202,7 @@ client.on("messageCreate", async (message) => {
           {
             name: "ℹ️ Informação",
             value: "`!horarios` - Mostra horários\n" +
-                   "`!comandos` - Mostra esta lista"
+                   "`!comandos` - Esta mensagem"
           }
         )
         .setFooter({ text: "Exemplos: !notificar kurama, madara | !dormir 2" });
@@ -178,26 +221,13 @@ client.on("messageCreate", async (message) => {
             name: "🦊 Bijuus",
             value: "Shukaku: 7:30 e 19:30\n" +
                    "Matatabi: 15:30 e 3:30\n" +
-                   "Isobu: 14:30 e 2:30\n" +
-                   "Son Goku: 10:00 e 22:00\n" +
-                   "Kokuo: 11:00 e 23:00\n" +
-                    "Saiken: 12:00 e 0:00\n" +
-                    "Chomei: 13:30 e 23:30\n" +
-                    "Gyuki: 12:30 e 0:30" + 
-                   "Kurama: 17:30 e 5:30\n"
-
-
+                   "Kurama: 17:30 e 5:30"
           },
           {
             name: "💀 Bosses",
             value: "Madara: 9:45 e 21:45\n" +
                    "Obito: 10:25 e 22:25\n" +
-                    "Zetsu: 10:30 e 20:30\n" +
-                    "Konan: 5:00 e 17:00\n" +
-                    "Juugo: 4:30 e 16:30\n" +
-                    "Deidara: 6:00 e 18:00\n" +
-                    "Kakuzo: 7:00 e 19:00\n" +
-                    "Kisame: 4:00 e 16:00"
+                   "Kisame: 4:00 e 16:00"
           }
         );
       
@@ -396,51 +426,19 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// Agendamentos
-function scheduleAlerts(name, hour, minute, isBoss = false) {
-  // Alerta de 10 minutos antes
-  let alertHour = hour;
-  let alertMinute = minute - 10;
-  
-  // Ajuste para minutos negativos
-  if (alertMinute < 0) {
-    alertMinute += 60;
-    alertHour -= 1;
-  }
-  
-  // Ajuste para horas negativas (cruzar a meia-noite)
-  if (alertHour < 0) {
-    alertHour += 24;
-  }
+client.on("ready", () => {
+  console.log(`✅ Bot online como ${client.user.tag}`);
 
-  // Verificação de segurança para valores válidos
-  if (alertHour < 0 || alertHour > 23 || alertMinute < 0 || alertMinute > 59) {
-    console.error(`❌ Horário inválido para ${name}: ${alertHour}:${alertMinute}`);
-    return;
-  }
-
-  // Agendamento do alerta de 10 minutos (sem GIF)
-  cron.schedule(`${alertMinute} ${alertHour} * * *`, () => {
-    sendAlert(name, false, isBoss);
-  }, {
-    timezone: "America/Sao_Paulo",
-    scheduled: true,
-    recoverMissedExecutions: false
+  // Verificar pasta de GIFs
+  fs.readdir(path.join(__dirname, 'gifs'), (err, files) => {
+    if (err) {
+      console.error('❌ Erro ao ler pasta gifs:', err);
+    } else {
+      console.log('📁 GIFs carregados:', files.join(', '));
+    }
   });
 
-  // Agendamento do spawn (com GIF)
-  cron.schedule(`${minute} ${hour} * * *`, () => {
-    sendAlert(name, true, isBoss);
-  }, {
-    timezone: "America/Sao_Paulo",
-    scheduled: true,
-    recoverMissedExecutions: false
-  });
-
-  console.log(`⏰ ${name} agendado para ${hour}:${minute} (alerta às ${alertHour}:${alertMinute})`);
-}
-
-  // Agendamentos das entidades
+  // Agendamentos
   scheduleAlerts("Shukaku", 7, 30);
   scheduleAlerts("Shukaku", 19, 30);
   scheduleAlerts("Matatabi", 15, 30);
@@ -476,10 +474,9 @@ function scheduleAlerts(name, hour, minute, isBoss = false) {
   scheduleAlerts("Madara", 9, 45, true);
   scheduleAlerts("Madara", 21, 45, true);
 
-  console.log("\n⏰ Agendamentos configurados!");
+  console.log("⏰ Todos os agendamentos foram configurados!");
 });
 
-// Servidor web simples
 const app = express();
 app.get("/", (req, res) => res.send("Bot Online!"));
 app.listen(process.env.PORT || 3000, () => {
