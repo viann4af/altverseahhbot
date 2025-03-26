@@ -111,9 +111,15 @@ client.on("messageCreate", async (message) => {
 
   try {
     if (message.content.startsWith("!notificar")) {
-      const args = message.content.toLowerCase().split(" ").slice(1);
+      const args = message.content.toLowerCase()
+        .replace(/,/g, ' ')
+        .split(' ')
+        .slice(1)
+        .filter(arg => arg.trim() !== '');
+
       if (args.length === 0) {
-        return message.reply("Use: `!notificar kurama, madara, ...`").then(m => setTimeout(() => m.delete(), 5000));
+        const reply = await message.reply("**Uso:** `!notificar bijuu1, boss1, bijuu2...`\n**Exemplo:** `!notificar kurama, madara`");
+        return setTimeout(() => reply.delete(), 10000);
       }
 
       let success = [];
@@ -126,30 +132,42 @@ client.on("messageCreate", async (message) => {
           continue;
         }
 
-        const role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-        if (!role) {
-          failed.push(roleName);
-          continue;
-        }
-
         try {
+          let role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+          
+          if (!role) {
+            role = await message.guild.roles.create({
+              name: roleName,
+              mentionable: true,
+              reason: `Cargo para notificações de ${roleName}`
+            });
+          }
+
           await message.member.roles.add(role);
           success.push(roleName);
         } catch (err) {
+          console.error(`Erro ao processar ${roleName}:`, err);
           failed.push(roleName);
         }
       }
 
       let reply = "";
-      if (success.length > 0) reply += `Now notifying: ${success.join(", ")}\n`;
-      if (failed.length > 0) reply += `Failed: ${failed.join(", ")}`;
+      if (success.length > 0) reply += `✅ **Cargos adicionados:** ${success.map(s => `@${s}`).join(', ')}\n`;
+      if (failed.length > 0) reply += `❌ **Erro em:** ${failed.join(', ')}`;
 
-      await message.reply(reply);
+      const response = await message.reply(reply);
+      setTimeout(() => response.delete(), 15000);
     }
     else if (message.content.startsWith("!silenciar")) {
-      const args = message.content.toLowerCase().split(" ").slice(1);
+      const args = message.content.toLowerCase()
+        .replace(/,/g, ' ')
+        .split(' ')
+        .slice(1)
+        .filter(arg => arg.trim() !== '');
+
       if (args.length === 0) {
-        return message.reply("Use: `!silenciar kurama, madara, ...`").then(m => setTimeout(() => m.delete(), 5000));
+        const reply = await message.reply("**Uso:** `!silenciar bijuu1, boss1...`\n**Exemplo:** `!silenciar kurama, obito`");
+        return setTimeout(() => reply.delete(), 10000);
       }
 
       let success = [];
@@ -162,41 +180,43 @@ client.on("messageCreate", async (message) => {
           continue;
         }
 
-        const role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-        if (!role) {
-          failed.push(roleName);
-          continue;
-        }
-
         try {
+          const role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+          if (!role) {
+            failed.push(roleName);
+            continue;
+          }
+
           await message.member.roles.remove(role);
           success.push(roleName);
         } catch (err) {
+          console.error(`Erro ao remover ${roleName}:`, err);
           failed.push(roleName);
         }
       }
 
       let reply = "";
-      if (success.length > 0) reply += `No longer notifying: ${success.join(", ")}\n`;
-      if (failed.length > 0) reply += `Failed: ${failed.join(", ")}`;
+      if (success.length > 0) reply += `✅ **Cargos removidos:** ${success.map(s => `@${s}`).join(', ')}\n`;
+      if (failed.length > 0) reply += `❌ **Erro em:** ${failed.join(', ')}`;
 
-      await message.reply(reply);
+      const response = await message.reply(reply);
+      setTimeout(() => response.delete(), 15000);
     }
     else if (message.content.startsWith("!testarbijuu")) {
       if (!message.member.roles.cache.has(ADMIN_ROLE_ID)) {
-        const reply = await message.reply("No permission!");
+        const reply = await message.reply("❌ Sem permissão!");
         return setTimeout(() => reply.delete(), 5000);
       }
 
       const args = message.content.split(" ");
       if (args.length < 3 || !["10min", "agora"].includes(args[2])) {
-        const reply = await message.reply("Use: `!testarbijuu [bijuu] [10min|agora]`");
+        const reply = await message.reply("❌ Use: `!testarbijuu [bijuu] [10min|agora]`");
         return setTimeout(() => reply.delete(), 5000);
       }
 
       const bijuuKey = args[1].toLowerCase();
       if (!BIJUUS[bijuuKey]) {
-        const reply = await message.reply(`Invalid bijuu: ${Object.values(BIJUUS).join(", ")}`);
+        const reply = await message.reply(`❌ Bijuus válidas: ${Object.values(BIJUUS).join(", ")}`);
         return setTimeout(() => reply.delete(), 5000);
       }
 
@@ -204,33 +224,42 @@ client.on("messageCreate", async (message) => {
     }
     else if (message.content.startsWith("!testarboss")) {
       if (!message.member.roles.cache.has(ADMIN_ROLE_ID)) {
-        const reply = await message.reply("No permission!");
+        const reply = await message.reply("❌ Sem permissão!");
         return setTimeout(() => reply.delete(), 5000);
       }
 
       const args = message.content.split(" ");
       if (args.length < 3 || !["10min", "agora"].includes(args[2])) {
-        const reply = await message.reply("Use: `!testarboss [boss] [10min|agora]`");
+        const reply = await message.reply("❌ Use: `!testarboss [boss] [10min|agora]`");
         return setTimeout(() => reply.delete(), 5000);
       }
 
       const bossKey = args[1].toLowerCase();
       if (!BOSSES[bossKey]) {
-        const reply = await message.reply(`Invalid boss: ${Object.values(BOSSES).join(", ")}`);
+        const reply = await message.reply(`❌ Bosses válidos: ${Object.values(BOSSES).join(", ")}`);
         return setTimeout(() => reply.delete(), 5000);
       }
 
       sendAlert(BOSSES[bossKey], args[2] === "agora", true);
     }
   } catch (error) {
-    console.error("Command error:", error);
+    console.error("Erro no comando:", error);
   }
 });
 
 function scheduleAlerts(name, hour, minute, isBoss = false) {
   const entityKey = Object.entries(isBoss ? BOSSES : BIJUUS).find(([_, value]) => value === name)[0];
 
-  cron.schedule(`${minute - 10} ${hour} * * *`, () => {
+  let alertMinute = minute - 10;
+  let alertHour = hour;
+  
+  if (alertMinute < 0) {
+    alertMinute += 60;
+    alertHour -= 1;
+    if (alertHour < 0) alertHour = 23;
+  }
+
+  cron.schedule(`${alertMinute} ${alertHour} * * *`, () => {
     sendAlert(name, false, isBoss);
   }, { timezone: "America/Sao_Paulo" });
 
@@ -240,7 +269,7 @@ function scheduleAlerts(name, hour, minute, isBoss = false) {
 }
 
 client.on("ready", () => {
-  console.log(`Bot ready as ${client.user.tag}`);
+  console.log(`✅ Bot online como ${client.user.tag}`);
 
   scheduleAlerts("Shukaku", 7, 30);
   scheduleAlerts("Shukaku", 19, 30);
