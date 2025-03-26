@@ -398,32 +398,47 @@ client.on("messageCreate", async (message) => {
 
 // Agendamentos
 function scheduleAlerts(name, hour, minute, isBoss = false) {
-  const alertMinute = minute - 10;
-  const alertHour = alertMinute < 0 ? hour - 1 : hour;
-  const fixedMinute = alertMinute < 0 ? alertMinute + 60 : alertMinute;
+  // Alerta de 10 minutos antes
+  let alertHour = hour;
+  let alertMinute = minute - 10;
+  
+  // Ajuste para minutos negativos
+  if (alertMinute < 0) {
+    alertMinute += 60;
+    alertHour -= 1;
+  }
+  
+  // Ajuste para horas negativas (cruzar a meia-noite)
+  if (alertHour < 0) {
+    alertHour += 24;
+  }
 
-  // Alerta de 10 minutos (sem GIF)
-  cron.schedule(`${fixedMinute} ${alertHour} * * *`, () => {
+  // Verificação de segurança para valores válidos
+  if (alertHour < 0 || alertHour > 23 || alertMinute < 0 || alertMinute > 59) {
+    console.error(`❌ Horário inválido para ${name}: ${alertHour}:${alertMinute}`);
+    return;
+  }
+
+  // Agendamento do alerta de 10 minutos (sem GIF)
+  cron.schedule(`${alertMinute} ${alertHour} * * *`, () => {
     sendAlert(name, false, isBoss);
-  }, { timezone: "America/Sao_Paulo" });
+  }, {
+    timezone: "America/Sao_Paulo",
+    scheduled: true,
+    recoverMissedExecutions: false
+  });
 
-  // Alerta de spawn (com GIF)
+  // Agendamento do spawn (com GIF)
   cron.schedule(`${minute} ${hour} * * *`, () => {
     sendAlert(name, true, isBoss);
-  }, { timezone: "America/Sao_Paulo" });
-}
-
-client.on("ready", () => {
-  console.log(`\n✅ Bot online como ${client.user.tag}\n`);
-
-  // Verificar pasta de GIFs
-  fs.readdir(path.join(__dirname, 'gifs'), (err, files) => {
-    if (err) {
-      console.error('❌ Erro ao ler pasta gifs:', err);
-    } else {
-      console.log('📁 GIFs carregados:', files.join(', '));
-    }
+  }, {
+    timezone: "America/Sao_Paulo",
+    scheduled: true,
+    recoverMissedExecutions: false
   });
+
+  console.log(`⏰ ${name} agendado para ${hour}:${minute} (alerta às ${alertHour}:${alertMinute})`);
+}
 
   // Agendamentos das entidades
   scheduleAlerts("Shukaku", 7, 30);
