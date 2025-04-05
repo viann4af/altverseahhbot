@@ -92,6 +92,19 @@ const ENTITY_ROLES = {
   madara: "Madara"
 };
 
+// Funções auxiliares
+function getAllBijuuRoles() {
+  return Object.entries(ENTITY_ROLES)
+    .filter(([key]) => BIJUUS[key])
+    .map(([, value]) => value);
+}
+
+function getAllBossRoles() {
+  return Object.entries(ENTITY_ROLES)
+    .filter(([key]) => BOSSES[key])
+    .map(([, value]) => value);
+}
+
 async function sendAlert(entityName, isNow, isBoss = false) {
   const channel = client.channels.cache.get(CHANNEL_ID);
   if (!channel) return console.error("❌ Canal não encontrado");
@@ -112,7 +125,6 @@ async function sendAlert(entityName, isNow, isBoss = false) {
     ]
   };
 
-  // Adiciona GIF apenas se for alerta de spawn (isNow = true)
   if (isNow) {
     messageContent.files = [
       new Discord.AttachmentBuilder(
@@ -134,28 +146,23 @@ async function sendAlert(entityName, isNow, isBoss = false) {
 }
 
 function scheduleAlerts(name, hour, minute, isBoss = false) {
-  // Alerta de 10 minutos antes
   let alertHour = hour;
   let alertMinute = minute - 10;
   
-  // Ajuste para minutos negativos
   if (alertMinute < 0) {
     alertMinute += 60;
     alertHour -= 1;
   }
   
-  // Ajuste para horas negativas (cruzar a meia-noite)
   if (alertHour < 0) {
     alertHour += 24;
   }
 
-  // Verificação de segurança para valores válidos
   if (alertHour < 0 || alertHour > 23 || alertMinute < 0 || alertMinute > 59) {
     console.error(`❌ Horário inválido para ${name}: ${alertHour}:${alertMinute}`);
     return;
   }
 
-  // Agendamento do alerta de 10 minutos (sem GIF)
   cron.schedule(`${alertMinute} ${alertHour} * * *`, () => {
     sendAlert(name, false, isBoss);
   }, {
@@ -164,7 +171,6 @@ function scheduleAlerts(name, hour, minute, isBoss = false) {
     recoverMissedExecutions: false
   });
 
-  // Agendamento do spawn (com GIF)
   cron.schedule(`${minute} ${hour} * * *`, () => {
     sendAlert(name, true, isBoss);
   }, {
@@ -188,8 +194,12 @@ client.on("messageCreate", async (message) => {
         .addFields(
           {
             name: "🔔 Notificações",
-            value: "`!notificar bijuu,boss` - Ativa alertas\n" +
+            value: "`!notificar bijuu,boss` - Ativa alertas individuais\n" +
+                   "`!notificar bijus` - Ativa TODAS as bijuus\n" +
+                   "`!notificar bosses` - Ativa TODOS os bosses\n" +
                    "`!silenciar bijuu,boss` - Desativa alertas\n" +
+                   "`!silenciar bijus` - Desativa TODAS as bijuus\n" +
+                   "`!silenciar bosses` - Desativa TODOS os bosses\n" +
                    "`!meuscargos` - Mostra suas notificações\n" +
                    "`!dormir [horas]` - Pausa notificações"
           },
@@ -205,7 +215,7 @@ client.on("messageCreate", async (message) => {
                    "`!comandos` - Esta mensagem"
           }
         )
-        .setFooter({ text: "Exemplos: !notificar kurama, madara | !dormir 2" });
+        .setFooter({ text: "Exemplos: !notificar kurama | !notificar bijus | !dormir 2" });
       
       await message.reply({ embeds: [embed] });
       return;
@@ -221,13 +231,24 @@ client.on("messageCreate", async (message) => {
             name: "🦊 Bijuus",
             value: "Shukaku: 7:30 e 19:30\n" +
                    "Matatabi: 15:30 e 3:30\n" +
+                   "Isobu: 14:30 e 2:30\n" +
+                   "Son Goku: 10:00 e 22:00\n" +
+                   "Kokuo: 11:00 e 23:00\n" +
+                   "Saiken: 12:00 e 0:00\n" +
+                   "Chomei: 13:30 e 23:30\n" +
+                   "Gyuki: 12:30 e 0:30\n" +
                    "Kurama: 17:30 e 5:30"
           },
           {
             name: "💀 Bosses",
-            value: "Madara: 9:45 e 21:45\n" +
-                   "Obito: 10:25 e 22:25\n" +
-                   "Kisame: 4:00 e 16:00"
+            value: "Obito: 10:25 e 22:25\n" +
+                   "Zetsu: 10:30 e 20:30\n" +
+                   "Konan: 5:00 e 17:00\n" +
+                   "Juugo: 4:30 e 16:30\n" +
+                   "Deidara: 6:00 e 18:00\n" +
+                   "Kakuzo: 7:00 e 19:00\n" +
+                   "Kisame: 4:00 e 16:00\n" +
+                   "Madara: 9:45 e 21:45"
           }
         );
       
@@ -260,35 +281,80 @@ client.on("messageCreate", async (message) => {
       const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
-        const reply = await message.reply("**Uso:** `!notificar bijuu1,boss1`\n**Exemplo:** `!notificar kurama, madara`");
+        const reply = await message.reply("**Uso:** `!notificar bijuu/boss/bijus/bosses`\n**Exemplos:** `!notificar kurama` ou `!notificar bijus`");
         return setTimeout(() => reply.delete(), 10000);
       }
 
       let success = [];
       let failed = [];
+      const member = message.member;
 
-      for (const entity of args) {
-        const roleName = ENTITY_ROLES[entity];
-        if (!roleName) {
-          failed.push(entity);
-          continue;
+      // Caso especial para notificar todas as bijuus
+      if (args.includes("bijus")) {
+        const bijuuRoles = getAllBijuuRoles();
+        for (const roleName of bijuuRoles) {
+          try {
+            let role = member.guild.roles.cache.find(r => r.name === roleName);
+            if (!role) {
+              role = await member.guild.roles.create({
+                name: roleName,
+                mentionable: true,
+                reason: `Cargo para notificações de ${roleName}`
+              });
+            }
+            await member.roles.add(role);
+            success.push(roleName);
+          } catch (err) {
+            console.error(`❌ Erro ao adicionar cargo ${roleName}:`, err);
+            failed.push(roleName);
+          }
         }
-
-        try {
-          let role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-          if (!role) {
-            role = await message.guild.roles.create({
-              name: roleName,
-              mentionable: true,
-              reason: `Cargo para notificações de ${roleName}`
-            });
+      } 
+      // Caso especial para notificar todos os bosses
+      else if (args.includes("bosses")) {
+        const bossRoles = getAllBossRoles();
+        for (const roleName of bossRoles) {
+          try {
+            let role = member.guild.roles.cache.find(r => r.name === roleName);
+            if (!role) {
+              role = await member.guild.roles.create({
+                name: roleName,
+                mentionable: true,
+                reason: `Cargo para notificações de ${roleName}`
+              });
+            }
+            await member.roles.add(role);
+            success.push(roleName);
+          } catch (err) {
+            console.error(`❌ Erro ao adicionar cargo ${roleName}:`, err);
+            failed.push(roleName);
+          }
+        }
+      } 
+      // Notificação individual
+      else {
+        for (const entity of args) {
+          const roleName = ENTITY_ROLES[entity];
+          if (!roleName) {
+            failed.push(entity);
+            continue;
           }
 
-          await message.member.roles.add(role);
-          success.push(roleName);
-        } catch (err) {
-          console.error(`❌ Erro ao adicionar cargo ${roleName}:`, err);
-          failed.push(roleName);
+          try {
+            let role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+            if (!role) {
+              role = await member.guild.roles.create({
+                name: roleName,
+                mentionable: true,
+                reason: `Cargo para notificações de ${roleName}`
+              });
+            }
+            await member.roles.add(role);
+            success.push(roleName);
+          } catch (err) {
+            console.error(`❌ Erro ao adicionar cargo ${roleName}:`, err);
+            failed.push(roleName);
+          }
         }
       }
 
@@ -305,32 +371,71 @@ client.on("messageCreate", async (message) => {
       const args = message.content.toLowerCase().replace(/,/g, ' ').split(' ').slice(1).filter(arg => arg.trim() !== '');
 
       if (args.length === 0) {
-        const reply = await message.reply("**Uso:** `!silenciar bijuu1,boss1`\n**Exemplo:** `!silenciar kurama, obito`");
+        const reply = await message.reply("**Uso:** `!silenciar bijuu/boss/bijus/bosses`\n**Exemplos:** `!silenciar kurama` ou `!silenciar bosses`");
         return setTimeout(() => reply.delete(), 10000);
       }
 
       let success = [];
       let failed = [];
+      const member = message.member;
 
-      for (const entity of args) {
-        const roleName = ENTITY_ROLES[entity];
-        if (!roleName) {
-          failed.push(entity);
-          continue;
-        }
-
-        try {
-          const role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-          if (!role) {
+      // Caso especial para silenciar todas as bijuus
+      if (args.includes("bijus")) {
+        const bijuuRoles = getAllBijuuRoles();
+        for (const roleName of bijuuRoles) {
+          try {
+            const role = member.guild.roles.cache.find(r => r.name === roleName);
+            if (role) {
+              await member.roles.remove(role);
+              success.push(roleName);
+            } else {
+              failed.push(roleName);
+            }
+          } catch (err) {
+            console.error(`❌ Erro ao remover cargo ${roleName}:`, err);
             failed.push(roleName);
+          }
+        }
+      } 
+      // Caso especial para silenciar todos os bosses
+      else if (args.includes("bosses")) {
+        const bossRoles = getAllBossRoles();
+        for (const roleName of bossRoles) {
+          try {
+            const role = member.guild.roles.cache.find(r => r.name === roleName);
+            if (role) {
+              await member.roles.remove(role);
+              success.push(roleName);
+            } else {
+              failed.push(roleName);
+            }
+          } catch (err) {
+            console.error(`❌ Erro ao remover cargo ${roleName}:`, err);
+            failed.push(roleName);
+          }
+        }
+      } 
+      // Silenciar individual
+      else {
+        for (const entity of args) {
+          const roleName = ENTITY_ROLES[entity];
+          if (!roleName) {
+            failed.push(entity);
             continue;
           }
 
-          await message.member.roles.remove(role);
-          success.push(roleName);
-        } catch (err) {
-          console.error(`❌ Erro ao remover cargo ${roleName}:`, err);
-          failed.push(roleName);
+          try {
+            const role = member.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+            if (role) {
+              await member.roles.remove(role);
+              success.push(roleName);
+            } else {
+              failed.push(roleName);
+            }
+          } catch (err) {
+            console.error(`❌ Erro ao remover cargo ${roleName}:`, err);
+            failed.push(roleName);
+          }
         }
       }
 
@@ -451,7 +556,7 @@ client.on("ready", () => {
   scheduleAlerts("Kokuo", 23, 0);
   scheduleAlerts("Saiken", 12, 0);
   scheduleAlerts("Saiken", 0, 0);
-  scheduleAlerts("Chomei", 11, 30);
+  scheduleAlerts("Chomei", 13, 30);
   scheduleAlerts("Chomei", 23, 30);
   scheduleAlerts("Gyuki", 12, 30);
   scheduleAlerts("Gyuki", 0, 30);
