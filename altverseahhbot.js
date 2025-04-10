@@ -235,7 +235,7 @@ client.on("messageCreate", async (message) => {
                    "Son Goku: 10:00 e 22:00\n" +
                    "Kokuo: 11:00 e 23:00\n" +
                    "Saiken: 12:00 e 0:00\n" +
-                   "Chomei: 13:30 e 23:30\n" +
+                   "Chomei: 11:30 e 23:30\n" +
                    "Gyuki: 12:30 e 0:30\n" +
                    "Kurama: 17:30 e 5:30"
           },
@@ -556,7 +556,7 @@ client.on("ready", () => {
   scheduleAlerts("Kokuo", 23, 0);
   scheduleAlerts("Saiken", 12, 0);
   scheduleAlerts("Saiken", 0, 0);
-  scheduleAlerts("Chomei", 13, 30);
+  scheduleAlerts("Chomei", 11, 30);
   scheduleAlerts("Chomei", 23, 30);
   scheduleAlerts("Gyuki", 12, 30);
   scheduleAlerts("Gyuki", 0, 30);
