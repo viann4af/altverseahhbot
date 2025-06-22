@@ -14,9 +14,9 @@
       "node-fetch": "^2.6.7"
     },
     "engines": {
-      "node": "18.x"
+    "node": "20.x"
     },
-    "repository": {
+      "repository": {
       "type": "git",
       "url": "https://github.com/viann4af/AltverseAhhBot.git"
     },
